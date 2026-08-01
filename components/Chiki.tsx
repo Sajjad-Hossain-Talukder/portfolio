@@ -4,6 +4,26 @@ import { useEffect, useRef, useState } from "react";
 
 type Msg = { role: "user" | "bot"; text: string };
 
+/** The bot is told to write plain text, but models slip back into markdown on
+ *  long technical answers. Replies render verbatim, so leftover syntax would
+ *  show up as literal ** and \_ on the page. Strip the common cases. */
+export function plain(text: string): string {
+  return text
+    // Models occasionally open with "Chiki:" despite the rule — the UI
+    // already labels the speaker, so it reads as a stutter.
+    .replace(/^\s*chiki\s*:\s*/i, "")
+    .replace(/```[a-z]*\n?/gi, "")
+    .replace(/\*\*(.+?)\*\*/gs, "$1")
+    .replace(/(^|\s)\*(\S.*?\S)\*(?=\s|$)/gs, "$1$2")
+    // Any indent, not just three spaces: nested markdown lists indent by four
+    // and the first version of this let "    *   CHR" straight through.
+    .replace(/^[ \t]*#{1,6}\s+/gm, "")
+    .replace(/^[ \t]*[-*•]\s+/gm, "")
+    .replace(/^[ \t]*\d+\.\s+/gm, "")
+    .replace(/\\([_*#`[\]()])/g, "$1")
+    .replace(/`([^`]+)`/g, "$1");
+}
+
 const CHIPS = [
   "What's your AI experience?",
   "Tell me about your research",
@@ -112,7 +132,9 @@ export default function Chiki() {
             m.role === "bot" && m.text === "" && loading && i === messages.length - 1 ? (
               <div key={i} className="msg bot typing"><span></span><span></span><span></span></div>
             ) : (
-              <div key={i} className={"msg " + (m.role === "user" ? "user" : "bot")}>{m.text}</div>
+              <div key={i} className={"msg " + (m.role === "user" ? "user" : "bot")}>
+                {m.role === "bot" ? plain(m.text) : m.text}
+              </div>
             )
           )}
         </div>

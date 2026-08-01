@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT } from "@/lib/profile";
+import { buildSystemPrompt } from "@/lib/profile";
 
 export const runtime = "nodejs";
 
@@ -60,10 +60,14 @@ export async function POST(req: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        // Rebuilt per request so the model is told today's date; a build-time
+        // constant would go stale and it would get tenses wrong.
+        system_instruction: { parts: [{ text: buildSystemPrompt() }] },
         contents,
         generationConfig: {
-          maxOutputTokens: 600,
+          // Raised from 600: with the papers in context, answers to real
+          // technical questions were being cut off mid-sentence.
+          maxOutputTokens: 1400,
           temperature: 0.6,
           // Disable "thinking" so the whole budget is the actual answer (fast + cheap).
           thinkingConfig: { thinkingBudget: 0 },
@@ -119,6 +123,12 @@ export async function POST(req: Request) {
   });
 
   return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+      // nginx-family proxies buffer a response body by default, which would
+      // hold the whole answer back and defeat the streaming.
+      "X-Accel-Buffering": "no",
+    },
   });
 }

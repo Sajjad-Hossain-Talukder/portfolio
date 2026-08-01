@@ -2,18 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// All three are generated from one data file (CV/cv-generator). Replace them by
+// re-running that generator and copying the PDFs here — do not hand-edit.
+// Ordered by how often a visitor needs them: academics first, then Europe, then
+// industry. `desc` says WHERE each one goes, since that is the actual question.
 const CVS = [
   {
-    label: "Europass CV",
-    desc: "EU academic / scholarship format",
+    label: "Academic CV",
+    desc: "Professors, PhD & Master's applications",
     icon: "🎓",
+    href: "/cv/Sajjad-Hossain-Talukder-Academic-CV.pdf",
+  },
+  {
+    label: "Europass CV",
+    desc: "European applications — DAAD, Erasmus, EU portals",
+    icon: "🇪🇺",
     href: "/cv/Sajjad-Hossain-Talukder-Europass-CV.pdf",
   },
   {
     label: "Professional CV",
-    desc: "Concise industry résumé",
+    desc: "Software engineering roles",
     icon: "💼",
-    href: "/cv/Sajjad-Hossain-Talukder-CV.pdf",
+    href: "/cv/Sajjad-Hossain-Talukder-Professional-CV.pdf",
   },
 ];
 
