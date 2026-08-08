@@ -104,7 +104,7 @@ export default function Home() {
           <div className="do-card reveal">
             <div className="ic">🔬</div>
             <h3>Researcher</h3>
-            <p>Peer-reviewed work in AI &amp; networking, including a paper under review at IEEE Transactions on Mobile Computing.</p>
+            <p>Peer-reviewed work in AI &amp; networking, including a paper accepted at IEEE Transactions on Mobile Computing.</p>
           </div>
           <div className="do-card reveal">
             <div className="ic">💻</div>
@@ -127,7 +127,7 @@ export default function Home() {
           <div>
             <p className="pull">&quot;I came up through competitive programming — that habit of breaking hard problems into clean, provable steps shapes everything I do.&quot;</p>
             <p>I&apos;m a software engineer and CS researcher from Chattogram, Bangladesh, who finished <strong>first in my batch</strong>. I like owning systems <strong>end to end</strong> — from the database and cloud up to the web, mobile, and AI layers users actually touch — and lately my focus is <strong>agentic AI and LLM-driven automation</strong>.</p>
-            <p>My foundation is <strong>algorithmic problem-solving</strong> — an ICPC Asia-West finalist who has solved over a thousand problems — which carries into both my engineering and my <strong>research</strong> in AI &amp; networking (a paper under review at IEEE Transactions on Mobile Computing).</p>
+            <p>My foundation is <strong>algorithmic problem-solving</strong> — an ICPC Asia-West finalist who has solved over a thousand problems — which carries into both my engineering and my <strong>research</strong> in AI &amp; networking (a paper accepted at IEEE Transactions on Mobile Computing).</p>
             <p>I&apos;ve shipped real products across web, iOS, and the App Store, and today I build AI backends remotely for a US startup. I also care deeply about <strong>mentorship</strong> — I spent three years training my university&apos;s competitive-programming teams.</p>
           </div>
           <div className="info-card">
@@ -181,12 +181,18 @@ export default function Home() {
         </ul>
 
         <h3 className="sub-h">Publications</h3>
-        {FACTS.publications.map((p) => (
+        {FACTS.publications.map((p) => {
+          // FACTS is `as const`, so `p.url` is a literal type. Narrowing on it
+          // directly narrows `p` itself, and once every publication has a URL
+          // the else branch becomes `never`. Widening to a local keeps the
+          // fallback compiling for a future entry that has no link.
+          const url: string | undefined = p.url;
+          return (
           <div className="pub" key={p.title}>
             <div className="venue">{p.venue}</div>
             <h3>
-              {p.url ? (
-                <a href={p.url} target="_blank" rel="noreferrer">{p.title}</a>
+              {url ? (
+                <a href={url} target="_blank" rel="noreferrer">{p.title}</a>
               ) : (
                 p.title
               )}
@@ -196,7 +202,8 @@ export default function Home() {
               {[p.year, p.status].filter(Boolean).join(" · ")}
             </span>
           </div>
-        ))}
+          );
+        })}
 
         <h3 className="sub-h">Research Interests</h3>
         <div className="interests">

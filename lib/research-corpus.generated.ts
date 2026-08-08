@@ -17,9 +17,9 @@ export const PAPERS: Paper[] = [
     id: "pdaf",
     title: "PDAF: Performance-Driven Adaptive Forwarding in SDN-Assisted NDN-MANETs",
     venue: "IEEE Transactions on Mobile Computing",
-    status: "Submitted January 2026, under review",
-    link: "",
-    note: "Sajjad is FIRST AUTHOR. This is his undergraduate thesis work, supervised by Dr. Shahid Md. Asif Iqbal. No public PDF: it is under review at IEEE.",
+    status: "Accepted August 2026, in press at IEEE TMC",
+    link: "https://doi.org/10.1109/TMC.2026.3722116",
+    note: "Sajjad is FIRST AUTHOR. This is his undergraduate thesis work, supervised by Dr. Shahid Md. Asif Iqbal. ACCEPTED at IEEE TMC on 6 Aug 2026 with no further changes requested. Not yet published: DOI 10.1109/TMC.2026.3722116 is live at doi.org/10.1109/TMC.2026.3722116.",
     body: `PDAF: Performance-Driven Adaptive Forwarding in
 SDN-Assisted NDN-MANETs
 Sajjad Hossain Talukder1 , Shahid Md. Asif Iqbal1,* , and Eimu Barua1
@@ -2103,7 +2103,7 @@ research.`,
   {
     id: "force",
     title: "FORCE — Federated ORchestration for Cache Eviction in Mobile NDN",
-    venue: "Independent research",
+    venue: "Joint research with Dr. S. M. A. Iqbal, Premier University",
     status: "Ongoing, 2026 - present",
     link: "",
     note: "Sajjad's current research. Design document, not yet submitted anywhere.",

@@ -87,7 +87,7 @@ npm run sync:papers   # -> lib/research-corpus.generated.ts   (needs poppler)
 No vector store and no retrieval step — the corpus fits Gemini Flash's window
 many times over, so the model simply reads it.
 
-**The PDFs are not hosted.** PDAF is under review at IEEE, and the book chapter
+**The PDFs are not hosted.** PDAF is accepted at IEEE (DOI 10.1109/TMC.2026.3722116), and the book chapter
 belongs to CRC Press / Taylor & Francis. Chiki knows the content and points
 people to the DOI; no paper PDF is served from `public/`.
 

@@ -39,11 +39,13 @@ const PAPERS = [
     title:
       "PDAF: Performance-Driven Adaptive Forwarding in SDN-Assisted NDN-MANETs",
     venue: "IEEE Transactions on Mobile Computing",
-    status: "Submitted January 2026, under review",
-    link: "",
+    status: "Accepted August 2026, in press at IEEE TMC",
+    link: "https://doi.org/10.1109/TMC.2026.3722116",
     note:
       "Sajjad is FIRST AUTHOR. This is his undergraduate thesis work, supervised " +
-      "by Dr. Shahid Md. Asif Iqbal. No public PDF: it is under review at IEEE.",
+      "by Dr. Shahid Md. Asif Iqbal. ACCEPTED at IEEE TMC on 6 Aug 2026 with no " +
+      "further changes requested. Not yet published: DOI 10.1109/TMC.2026.3722116 " +
+      "is live at doi.org/10.1109/TMC.2026.3722116.",
     // Everything up to the bibliography. pdftotext renders the small-caps
     // heading as "R EFERENCES".
     trim: (t) => cutAt(t, /^\s*R\s*EFERENCES\s*$/m),
@@ -69,7 +71,7 @@ const PAPERS = [
     file: "force.pdf",
     title:
       "FORCE — Federated ORchestration for Cache Eviction in Mobile NDN",
-    venue: "Independent research",
+    venue: "Joint research with Dr. S. M. A. Iqbal, Premier University",
     status: "Ongoing, 2026 - present",
     link: "",
     note:
