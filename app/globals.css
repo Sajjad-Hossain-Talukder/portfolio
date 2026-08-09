@@ -53,7 +53,13 @@
   .center-head{text-align:center}.center-head .section-sub{margin-left:auto;margin-right:auto}
 
   /* ---------- HERO ---------- */
+  /* overflow:hidden keeps the ::before glow and the .deco blobs from widening the
+     page. It also clipped the Download CV menu at the hero's bottom edge, so the
+     horizontal clip is kept and the vertical one released. It must be `clip`, not
+     `hidden` — pairing `visible` with `hidden` computes to `auto` per spec and
+     gives the hero its own scrollbar. */
   .hero{position:relative;min-height:100vh;display:flex;align-items:center;padding-top:110px;padding-bottom:60px;overflow:hidden}
+  @supports (overflow:clip){.hero{overflow-x:clip;overflow-y:visible}}
   .hero-grid{display:grid;grid-template-columns:1.2fr .9fr;gap:50px;align-items:center;width:100%}
   @media(max-width:860px){.hero{min-height:auto;padding-top:128px}.hero-grid{grid-template-columns:1fr;gap:48px}.hero .photo-wrap{order:-1}}
   .hero::before{content:"";position:absolute;top:-10%;right:-5%;width:540px;height:540px;border-radius:50%;z-index:0;pointer-events:none;
