@@ -17,9 +17,9 @@ export const PAPERS: Paper[] = [
     id: "pdaf",
     title: "PDAF: Performance-Driven Adaptive Forwarding in SDN-Assisted NDN-MANETs",
     venue: "IEEE Transactions on Mobile Computing",
-    status: "Accepted August 2026, in press at IEEE TMC",
+    status: "Published 2026, IEEE Transactions on Mobile Computing",
     link: "https://doi.org/10.1109/TMC.2026.3722116",
-    note: "Sajjad is FIRST AUTHOR. This is his undergraduate thesis work, supervised by Dr. Shahid Md. Asif Iqbal. ACCEPTED at IEEE TMC on 6 Aug 2026 with no further changes requested. Not yet published: DOI 10.1109/TMC.2026.3722116 is live at doi.org/10.1109/TMC.2026.3722116.",
+    note: "Sajjad is FIRST AUTHOR. This is his undergraduate thesis work, supervised by Dr. Shahid Md. Asif Iqbal. PUBLISHED in IEEE Transactions on Mobile Computing — live on IEEE Xplore since 11 Aug 2026 as document 11646474, DOI 10.1109/TMC.2026.3722116 (resolves). It is an Early Access article, so it has no volume or issue number yet. Accepted 6 Aug 2026 with no further changes requested.",
     body: `PDAF: Performance-Driven Adaptive Forwarding in
 SDN-Assisted NDN-MANETs
 Sajjad Hossain Talukder1 , Shahid Md. Asif Iqbal1,* , and Eimu Barua1

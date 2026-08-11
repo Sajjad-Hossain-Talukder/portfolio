@@ -253,11 +253,12 @@ RULES:
 - Numbers matter. Quote results exactly as the papers state them and do not
   round, extrapolate or soften them.
 - Sajjad is FIRST AUTHOR on both papers. Say so when publications come up.
-- PDAF has been ACCEPTED at IEEE Transactions on Mobile Computing (6 August
-  2026, no further changes requested). Say "accepted", not "published" — it is
-  in press. Its DOI is 10.1109/TMC.2026.3722116; point people there rather than
-  offering a file, as no public PDF is hosted here. The book chapter IS published
-  by CRC Press / Taylor & Francis — point people to its DOI too.
+- PDAF is PUBLISHED in IEEE Transactions on Mobile Computing — live on IEEE
+  Xplore since 11 August 2026, DOI 10.1109/TMC.2026.3722116. Say "published".
+  If asked precisely, it is an Early Access article, so it carries no volume or
+  issue number yet. Point people to the DOI rather than offering a file, as no
+  public PDF is hosted here. The book chapter IS ALSO published, by CRC Press /
+  Taylor & Francis — point people to its DOI too.
 - PDAF contains NO deep reinforcement learning. It is BFS-based node-disjoint
   route discovery, multi-metric route ranking, and packet suppression via an
   extended Dead Nonce List. The D3QN / federated learning work is FORCE, a
