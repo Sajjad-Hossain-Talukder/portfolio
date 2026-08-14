@@ -24,6 +24,38 @@ export function plain(text: string): string {
     .replace(/`([^`]+)`/g, "$1");
 }
 
+/** Ties the turns of one conversation together in the log, and remembers where
+ *  the visitor originally came from. Kept in sessionStorage rather than a
+ *  cookie: it dies with the tab, is never sent to any third party, and it means
+ *  navigating between pages mid-chat does not start a new conversation.
+ *
+ *  document.referrer is only trustworthy on the landing page — after a client
+ *  side route change it reports the portfolio itself — so the first value seen
+ *  is the one kept. That is the value worth having: it says whether they
+ *  arrived from an email link. */
+function session(): { sid: string; ref: string } {
+  if (typeof window === "undefined") return { sid: "", ref: "" };
+  try {
+    let sid = sessionStorage.getItem("chiki_sid");
+    if (!sid) {
+      sid =
+        typeof crypto?.randomUUID === "function"
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(36).slice(2);
+      sessionStorage.setItem("chiki_sid", sid);
+    }
+    let ref = sessionStorage.getItem("chiki_ref");
+    if (ref === null) {
+      ref = document.referrer || "";
+      sessionStorage.setItem("chiki_ref", ref);
+    }
+    return { sid, ref };
+  } catch {
+    // Private mode / storage disabled — logging degrades, chat still works.
+    return { sid: "", ref: "" };
+  }
+}
+
 const CHIPS = [
   "What's your AI experience?",
   "Tell me about your research",
@@ -51,10 +83,16 @@ export default function Chiki() {
     setInput("");
     setLoading(true);
     try {
+      const { sid, ref } = session();
       const res = await fetch("/api/chiki", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({
+          messages: history,
+          sid,
+          ref,
+          page: window.location.pathname,
+        }),
       });
       if (!res.ok || !res.body) throw new Error("bad response");
       const reader = res.body.getReader();

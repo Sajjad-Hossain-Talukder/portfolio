@@ -1,4 +1,6 @@
 import { buildSystemPrompt } from "@/lib/profile";
+import { recordChatTurn } from "@/lib/chats";
+import { clientIp, geoOf } from "@/lib/request";
 
 export const runtime = "nodejs";
 
@@ -24,12 +26,12 @@ export async function POST(req: Request) {
   }
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
+  const ip = clientIp(req.headers);
   if (rateLimited(ip)) {
     return new Response("You're sending messages a bit fast — please wait a moment.", { status: 429 });
   }
 
-  let body: { messages?: Msg[] };
+  let body: { messages?: Msg[]; sid?: string; ref?: string; page?: string };
   try {
     body = await req.json();
   } catch {
@@ -44,6 +46,22 @@ export async function POST(req: Request) {
   if (!msgs.length || msgs[msgs.length - 1].role !== "user") {
     return new Response("Bad request.", { status: 400 });
   }
+
+  // Everything needed to log this exchange, resolved before streaming starts.
+  // `ref` is the visitor's ORIGINAL landing referrer, sent by the client — the
+  // Referer header on this POST is only ever the portfolio itself, which would
+  // hide the one fact worth knowing (did they arrive from an email link?).
+  const question = msgs[msgs.length - 1].text;
+  const meta = {
+    sid: typeof body.sid === "string" ? body.sid.slice(0, 40) : "no-sid",
+    n: msgs.filter((m) => m.role === "user").length,
+    ip,
+    ...geoOf(req.headers),
+    ref: typeof body.ref === "string" ? body.ref.slice(0, 300) : "",
+    page: typeof body.page === "string" ? body.page.slice(0, 200) : "",
+    ua: (req.headers.get("user-agent") ?? "").slice(0, 200),
+  };
+  const startedAt = Date.now();
 
   // Gemini requires the conversation to begin with a user turn — our history does.
   const contents = msgs.map((m) => ({
@@ -87,6 +105,8 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   let buffer = "";
 
+  let answer = "";
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
@@ -106,7 +126,10 @@ export async function POST(req: Request) {
               const parts = json?.candidates?.[0]?.content?.parts;
               if (Array.isArray(parts)) {
                 for (const p of parts) {
-                  if (p?.text) controller.enqueue(encoder.encode(p.text));
+                  if (p?.text) {
+                    answer += p.text;
+                    controller.enqueue(encoder.encode(p.text));
+                  }
                 }
               }
             } catch {
@@ -117,6 +140,21 @@ export async function POST(req: Request) {
       } catch {
         // surface nothing extra — the client shows a friendly fallback
       } finally {
+        // Logged BEFORE close(): once the stream closes the response is
+        // complete and the serverless instance may be frozen mid-write, which
+        // would silently drop the last turn of every conversation. One Redis
+        // round-trip after the final token is not perceptible.
+        try {
+          await recordChatTurn({
+            ...meta,
+            t: Date.now(),
+            ms: Date.now() - startedAt,
+            q: question,
+            a: answer,
+          });
+        } catch {
+          /* logging must never break the reply */
+        }
         controller.close();
       }
     },

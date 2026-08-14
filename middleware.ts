@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { recordVisit, isBot } from "./lib/visits";
+import { clientIp, geoOf } from "./lib/request";
 
 // Server-side tracking, deliberately not client-side: an ad blocker cannot stop
-// it, and Vercel hands us country/city for free at the edge. It also means no
-// tracking script runs in the visitor's browser at all.
+// it, and Vercel hands us IP, country, region, city and timezone for free at
+// the edge. It also means no tracking script runs in the visitor's browser.
 //
 // The write is awaited but wrapped so it can never fail a page load, and the
 // matcher below keeps it off assets, the API and the dashboard itself.
@@ -19,8 +20,8 @@ export async function middleware(request: NextRequest) {
       t: Date.now(),
       path: request.nextUrl.pathname,
       ref: request.headers.get("referer") ?? "",
-      country: request.headers.get("x-vercel-ip-country") ?? "",
-      city: decodeURIComponent(request.headers.get("x-vercel-ip-city") ?? ""),
+      ip: clientIp(request.headers),
+      ...geoOf(request.headers),
       ua: ua.slice(0, 200),
     });
   } catch {

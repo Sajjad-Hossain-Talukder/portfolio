@@ -1,85 +1,46 @@
-// Visit logging backed by Vercel KV (Upstash Redis) over its REST API.
+// Visit logging backed by Upstash Redis over its REST API.
 //
-// Deliberately dependency-free: Upstash's REST endpoint is plain HTTP, so this
-// works from Edge middleware without pulling in an SDK. If the env vars are not
-// set the whole thing no-ops, so a missing KV store degrades to "no analytics"
-// rather than a broken site.
+// ⚠️ PRIVACY — changed 14 Aug 2026. This log now records IP addresses, on
+// purpose, so individual visitors can be told apart and a professor following
+// an email link can be recognised across pages. Before this it stored no
+// identifier at all.
 //
-// PRIVACY: no IP address, no cookie, no fingerprint, no identifier of any kind.
-// We keep timestamp, path, referrer, coarse geo (country/city, provided free by
-// Vercel's edge) and the user-agent string, which is what makes bot filtering
-// possible. Nothing here identifies a person.
+// What is stored: timestamp, path, referrer, IP, coarse geo (country, region,
+// city, timezone) and the user-agent. There are still no cookies and no
+// client-side script — everything comes from headers Vercel already provides
+// at the edge.
+//
+// An IP is personal data under GDPR. This is a personal portfolio with a tiny
+// audience, but if it ever grows, the honest options are a short privacy note
+// on the site and a retention cap shorter than MAX_VISITS implies.
 
-// Accept either naming convention. Vercel retired the "KV" product name and
-// moved it to the Upstash marketplace integration, which sets UPSTASH_* vars —
-// but older projects (and Vercel's own docs) still use KV_*. Taking both means
-// this works no matter which route the store was created through.
-const URL_ =
-  process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN =
-  process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+import { kv, kvConfigured, pushCapped, readList } from "./kv";
+
+export { kvConfigured };
 
 /** Newest-first list. Trimmed to this many so storage stays inside the free tier. */
 export const MAX_VISITS = 2000;
 const KEY = "visits";
 
 export type Visit = {
-  t: number;        // epoch ms
+  t: number; // epoch ms
   path: string;
-  ref: string;      // referrer, "" when opened directly
+  ref: string; // referrer, "" when opened directly
+  ip: string;
   country: string;
+  region: string;
   city: string;
+  tz: string; // visitor's local timezone, from the edge
   ua: string;
 };
 
-export const kvConfigured = Boolean(URL_ && TOKEN);
-
-async function kv(command: unknown[]): Promise<unknown> {
-  if (!kvConfigured) return null;
-  const res = await fetch(URL_!, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(command),
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const json = (await res.json()) as { result?: unknown };
-  return json.result ?? null;
-}
-
 /** Fire-and-forget. Never throws — a logging failure must not break a page load. */
 export async function recordVisit(v: Visit): Promise<void> {
-  if (!kvConfigured) return;
-  try {
-    await kv(["LPUSH", KEY, JSON.stringify(v)]);
-    await kv(["LTRIM", KEY, "0", String(MAX_VISITS - 1)]);
-  } catch {
-    /* ignore */
-  }
+  await pushCapped(KEY, v, MAX_VISITS);
 }
 
 export async function readVisits(limit = MAX_VISITS): Promise<Visit[]> {
-  if (!kvConfigured) return [];
-  try {
-    const raw = (await kv(["LRANGE", KEY, "0", String(limit - 1)])) as
-      | string[]
-      | null;
-    if (!Array.isArray(raw)) return [];
-    return raw
-      .map((s) => {
-        try {
-          return JSON.parse(s) as Visit;
-        } catch {
-          return null;
-        }
-      })
-      .filter((v): v is Visit => v !== null);
-  } catch {
-    return [];
-  }
+  return readList<Visit>(KEY, limit);
 }
 
 export async function clearVisits(): Promise<void> {
@@ -96,7 +57,8 @@ export async function clearVisits(): Promise<void> {
  * an email client fetching a link preview would otherwise look like a professor
  * reading the site.
  */
-const BOT = /bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discord|preview|monitor|pingdom|uptime|headless|lighthouse|gtmetrix|curl|wget|python-requests|axios|node-fetch|go-http/i;
+const BOT =
+  /bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|slackbot|discord|preview|monitor|pingdom|uptime|headless|lighthouse|gtmetrix|curl|wget|python-requests|axios|node-fetch|go-http/i;
 
 export function isBot(ua: string): boolean {
   return !ua || BOT.test(ua);
@@ -115,11 +77,42 @@ export function describeSource(ref: string): { label: string; email: boolean } {
   } catch {
     /* keep raw */
   }
-  const mail = /mail\.google|gmail|outlook|mail\.yahoo|proofpoint|zoho|mimecast|protonmail|roundcube|webmail/i;
+  const mail =
+    /mail\.google|gmail|outlook|mail\.yahoo|proofpoint|zoho|mimecast|protonmail|roundcube|webmail/i;
   if (mail.test(host)) return { label: `📧 Email (${host})`, email: true };
   if (/linkedin/i.test(host)) return { label: "LinkedIn", email: false };
   if (/github/i.test(host)) return { label: "GitHub", email: false };
   if (/google\.|bing\.|duckduckgo|search/i.test(host))
     return { label: `Search (${host})`, email: false };
   return { label: host, email: false };
+}
+
+/** Rough device class from the UA. Enough to tell a phone from a laptop. */
+export function deviceOf(ua: string): string {
+  if (/iphone|ipod/i.test(ua)) return "iPhone";
+  if (/ipad/i.test(ua)) return "iPad";
+  if (/android/i.test(ua)) return /mobile/i.test(ua) ? "Android phone" : "Android tablet";
+  if (/macintosh|mac os x/i.test(ua)) return "Mac";
+  if (/windows/i.test(ua)) return "Windows";
+  if (/linux/i.test(ua)) return "Linux";
+  return "Unknown";
+}
+
+/** Browser family, for the detail column. */
+export function browserOf(ua: string): string {
+  if (/edg\//i.test(ua)) return "Edge";
+  if (/opr\/|opera/i.test(ua)) return "Opera";
+  if (/chrome\//i.test(ua) && !/chromium/i.test(ua)) return "Chrome";
+  if (/firefox\//i.test(ua)) return "Firefox";
+  if (/safari\//i.test(ua)) return "Safari";
+  return "Other";
+}
+
+/** Full place string: "Chattogram, Dhaka, BD". Blank parts are dropped. */
+export function placeOf(v: {
+  city?: string;
+  region?: string;
+  country?: string;
+}): string {
+  return [v.city, v.region, v.country].filter(Boolean).join(", ") || "—";
 }
