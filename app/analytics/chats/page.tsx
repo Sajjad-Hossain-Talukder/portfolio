@@ -1,6 +1,6 @@
 import { readChatTurns, groupConversations } from "../../../lib/chats";
 import { describeSource, deviceOf, browserOf, placeOf, kvConfigured } from "../../../lib/visits";
-import { Denied, NoStore, Card, Panel, count, since, exact, S } from "../ui";
+import { Denied, NoStore, Tabs, Card, Panel, count, since, exact, S } from "../ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -42,12 +42,7 @@ export default async function Chats({
         {uniqueIps.size} unique IPs · newest first · times shown in Dhaka
       </p>
 
-      <nav style={S.nav}>
-        <a style={S.navLink} href={`/analytics?key=${encodeURIComponent(key)}`}>
-          📈 Visits
-        </a>
-        <span style={{ ...S.navLink, ...S.navOn }}>💬 Chiki conversations</span>
-      </nav>
+      <Tabs active="chats" secret={key} chats={convos.length} />
 
       <div style={S.cards}>
         <Card label="Conversations" value={convos.length} />

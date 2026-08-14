@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { recordVisit, isBot } from "./lib/visits";
+import { recordVisit, isBot, isScannerPath } from "./lib/visits";
 import { clientIp, geoOf } from "./lib/request";
 
 // Server-side tracking, deliberately not client-side: an ad blocker cannot stop
@@ -15,6 +15,8 @@ export async function middleware(request: NextRequest) {
   try {
     const ua = request.headers.get("user-agent") ?? "";
     if (isBot(ua)) return res;
+    // Scanners send a normal-looking UA, so the path is the only tell.
+    if (isScannerPath(request.nextUrl.pathname)) return res;
 
     await recordVisit({
       t: Date.now(),

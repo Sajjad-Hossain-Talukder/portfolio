@@ -11,6 +11,7 @@ import { readChatTurns, groupConversations } from "../../lib/chats";
 import {
   Denied,
   NoStore,
+  Tabs,
   Card,
   Panel,
   Table,
@@ -86,12 +87,7 @@ export default async function Analytics({
         bots filtered · times shown in Dhaka
       </p>
 
-      <nav style={S.nav}>
-        <span style={{ ...S.navLink, ...S.navOn }}>📈 Visits</span>
-        <a style={S.navLink} href={`/analytics/chats?key=${encodeURIComponent(key)}`}>
-          💬 Chiki conversations ({convos.length})
-        </a>
-      </nav>
+      <Tabs active="visits" secret={key} chats={convos.length} />
 
       <div style={S.cards}>
         <Card label="Last 24 hours" value={last24} />

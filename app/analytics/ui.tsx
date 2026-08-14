@@ -29,6 +29,37 @@ export function NoStore() {
   );
 }
 
+/**
+ * Segmented switcher between the two dashboards.
+ *
+ * ⚠️ Must NOT be a <nav>. globals.css styles every nav on the site as the
+ * fixed portfolio header (`position:fixed;top:0;justify-content:space-between`),
+ * which pinned this bar over the page title and threw the two links to opposite
+ * edges of the viewport. A plain div stays in normal flow.
+ */
+export function Tabs({
+  active,
+  secret,
+  chats,
+}: {
+  active: "visits" | "chats";
+  secret: string;
+  chats: number;
+}) {
+  const k = encodeURIComponent(secret);
+  const tab = (on: boolean) => ({ ...S.tab, ...(on ? S.tabOn : {}) });
+  return (
+    <div style={S.tabs}>
+      <a style={tab(active === "visits")} href={`/analytics?key=${k}`}>
+        📈 Visits
+      </a>
+      <a style={tab(active === "chats")} href={`/analytics/chats?key=${k}`}>
+        💬 Chiki conversations{chats > 0 ? ` (${chats})` : ""}
+      </a>
+    </div>
+  );
+}
+
 /** "5m ago" — cheap orientation above the exact stamp. */
 export function since(ms: number): string {
   const s = Math.floor((Date.now() - ms) / 1000);
@@ -139,9 +170,9 @@ export const S: Record<string, React.CSSProperties> = {
   sub: { color: "#666", fontSize: ".88rem", marginBottom: "1rem" },
   note: { color: "#777", fontSize: ".82rem", margin: "0 0 .75rem" },
   warn: { background: "#fff8e1", border: "1px solid #ffe082", padding: "1rem", borderRadius: 10, fontSize: ".9rem", lineHeight: 1.6 },
-  nav: { display: "flex", gap: ".5rem", margin: "0 0 1.5rem", flexWrap: "wrap" },
-  navLink: { fontSize: ".82rem", fontWeight: 600, padding: ".4rem .8rem", borderRadius: 999, border: "1px solid #e5e5e5", color: "#333", textDecoration: "none", background: "#fafafa" },
-  navOn: { background: "#111", color: "#fff", borderColor: "#111" },
+  tabs: { display: "inline-flex", gap: ".25rem", margin: "0 0 1.75rem", padding: ".25rem", background: "#f4f4f5", border: "1px solid #e5e5e5", borderRadius: 999, flexWrap: "wrap" },
+  tab: { fontSize: ".82rem", fontWeight: 600, padding: ".45rem 1rem", borderRadius: 999, color: "#52525b", textDecoration: "none", whiteSpace: "nowrap", transition: "background .15s" },
+  tabOn: { background: "#111", color: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.18)" },
   cards: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: ".75rem", marginBottom: "1rem" },
   card: { border: "1px solid #e5e5e5", borderRadius: 12, padding: "1rem" },
   cardHi: { background: "#f0f7ff", borderColor: "#b3d7ff" },

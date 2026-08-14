@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Msg = { role: "user" | "bot"; text: string };
 
@@ -70,6 +71,7 @@ export default function Chiki() {
   const [loading, setLoading] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -136,6 +138,12 @@ export default function Chiki() {
     setOpen(true);
     setTimeout(() => inputRef.current?.focus(), 60);
   }
+
+  // Chiki is mounted in the root layout, so it would otherwise float over the
+  // private dashboards too — where it is noise, and where chatting with it
+  // would log a conversation against Sajjad's own IP. Returned after the hooks
+  // above so the hook order stays constant.
+  if (pathname?.startsWith("/analytics")) return null;
 
   return (
     <>

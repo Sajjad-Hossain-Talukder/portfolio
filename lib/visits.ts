@@ -65,6 +65,23 @@ export function isBot(ua: string): boolean {
 }
 
 /**
+ * Vulnerability scanners probing for software this site does not run —
+ * WordPress endpoints, exposed .env / .git, admin panels, backup dumps.
+ *
+ * These arrive with an ordinary desktop user-agent and often a spoofed
+ * same-site referrer, so isBot() cannot see them; only the requested path
+ * gives them away. Nothing here is a real page on this portfolio, so a hit is
+ * proof of a scan rather than a visitor. Filtered because three /wp-json
+ * probes were sitting in the Pages panel looking like genuine traffic.
+ */
+const SCAN =
+  /^\/(wp-|wordpress|xmlrpc\.php|\.env|\.git|\.aws|\.ssh|vendor\/|phpmyadmin|pma|adminer|cgi-bin|admin\.php|administrator|typo3|joomla|drupal|autodiscover|owa\/|solr|actuator|telescope|debug|backup|dump|db\.sql|config\.(json|php|yml))/i;
+
+export function isScannerPath(path: string): boolean {
+  return SCAN.test(path);
+}
+
+/**
  * Where the visit came from, in words. The point of the whole exercise: a hit
  * with a Gmail or Outlook referrer is very likely a professor following the
  * link in an application email.
