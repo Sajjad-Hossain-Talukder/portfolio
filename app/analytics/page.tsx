@@ -52,9 +52,12 @@ export default async function Analytics({
       <main style={S.page}>
         <h1 style={S.h1}>Visits</h1>
         <p style={S.warn}>
-          No KV store connected. Add a KV database in the Vercel dashboard —
-          it sets <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code>{" "}
-          automatically. Until then nothing is being recorded.
+          No Redis store connected. In the Vercel dashboard go to{" "}
+          <strong>Storage → Browse Storage → Upstash → Redis</strong> and create
+          one, then redeploy. It sets the connection variables automatically
+          (either <code>UPSTASH_REDIS_REST_*</code> or <code>KV_REST_API_*</code>{" "}
+          — both are accepted). Until then nothing is being recorded, and the
+          rest of the site is unaffected.
         </p>
       </main>
     );

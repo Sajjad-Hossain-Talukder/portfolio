@@ -10,8 +10,14 @@
 // Vercel's edge) and the user-agent string, which is what makes bot filtering
 // possible. Nothing here identifies a person.
 
-const URL_ = process.env.KV_REST_API_URL;
-const TOKEN = process.env.KV_REST_API_TOKEN;
+// Accept either naming convention. Vercel retired the "KV" product name and
+// moved it to the Upstash marketplace integration, which sets UPSTASH_* vars —
+// but older projects (and Vercel's own docs) still use KV_*. Taking both means
+// this works no matter which route the store was created through.
+const URL_ =
+  process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+const TOKEN =
+  process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
 
 /** Newest-first list. Trimmed to this many so storage stays inside the free tier. */
 export const MAX_VISITS = 2000;
